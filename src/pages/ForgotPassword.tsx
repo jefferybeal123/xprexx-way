@@ -1,0 +1,95 @@
+
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Navigation from "@/components/Navigation";
+
+const ForgotPassword = () => {
+  const [email, setEmail] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      setError("Please enter your email address");
+      return;
+    }
+    
+    // In a real app, this would connect to your auth service
+    // For demo purposes, we'll just show a success message
+    setIsSubmitted(true);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navigation />
+      
+      <div className="flex-grow flex items-center justify-center py-20">
+        <div className="relative bg-white/90 backdrop-blur-sm shadow-lg rounded-lg p-8 w-full max-w-md border border-gray-200">
+          <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+            <div className="h-10 w-10 bg-kargon-red rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-xl">K</span>
+            </div>
+          </div>
+          
+          <h2 className="text-2xl font-bold text-center mb-6 mt-4 text-kargon-dark">Forgot Password</h2>
+          
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          {isSubmitted ? (
+            <div className="text-center space-y-4">
+              <div className="bg-green-50 text-green-800 p-4 rounded-md mb-4">
+                <p>Password reset instructions have been sent to your email.</p>
+              </div>
+              <p>Please check your inbox and follow the instructions to reset your password.</p>
+              <Link to="/login">
+                <Button variant="link" className="text-kargon-red">Return to Login</Button>
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <p className="text-gray-600 mb-4">
+                Enter your email address below and we'll send you instructions to reset your password.
+              </p>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              
+              <Button type="submit" className="w-full bg-kargon-red hover:bg-kargon-red/90 text-white">
+                Reset Password
+              </Button>
+              
+              <div className="text-center mt-4">
+                <p className="text-gray-600">
+                  Remembered your password?{" "}
+                  <Link to="/login" className="text-kargon-red hover:underline font-medium">
+                    Login
+                  </Link>
+                </p>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ForgotPassword;

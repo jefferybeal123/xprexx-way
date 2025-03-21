@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -96,8 +95,6 @@ const Signup = () => {
           </form>
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 };
