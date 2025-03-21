@@ -2,29 +2,7 @@
 import ScrollAnimation from "./ScrollAnimation";
 import { Clock, ChevronRight } from "lucide-react";
 
-const NumberedServiceCard = ({ 
-  number, 
-  title, 
-  description,
-  delay 
-}: { 
-  number: string;
-  title: string; 
-  description: string;
-  delay: number;
-}) => {
-  return (
-    <ScrollAnimation delay={delay} className="flex flex-col items-center text-center">
-      <div className="rounded-full border-2 border-gray-200 bg-white w-24 h-24 flex items-center justify-center mb-6">
-        <span className="text-4xl font-bold text-kargon-dark">{number}</span>
-      </div>
-      <h3 className="text-2xl font-bold text-kargon-dark mb-3">{title}</h3>
-      <p className="text-gray-600">{description}</p>
-    </ScrollAnimation>
-  );
-};
-
-const DetailedServiceCard = ({ 
+const ServiceCard = ({ 
   title, 
   description, 
   icon: Icon, 
@@ -54,23 +32,27 @@ const DetailedServiceCard = ({
 
 const ServicesCards = () => {
   return (
-    <section className="relative z-20 mb-20 -mt-16 pt-4">
+    <section className="relative z-20 mb-20 md:-mt-24 pt-4 md:pt-0">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="bg-white shadow-lg rounded-lg p-8 md:p-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <DetailedServiceCard
-              title="We provide the quickest logistics delivery"
-              description="Time-sensitive solutions designed to meet your deadlines every time."
-              icon={Clock}
-              delay={100}
-            />
-            <NumberedServiceCard
-              number="03"
-              title="Cargo Transportation"
-              description="Our expertise ensures your cargo is delivered safely."
-              delay={200}
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <ServiceCard
+            title="We understand what makes logistics work"
+            description="Our expertise ensures your cargo is delivered safely and efficiently."
+            icon={Clock}
+            delay={100}
+          />
+          <ServiceCard
+            title="We provide the quickest logistics delivery"
+            description="Time-sensitive solutions designed to meet your deadlines every time."
+            icon={Clock}
+            delay={200}
+          />
+          <ServiceCard
+            title="We understand the importance of timely delivery"
+            description="Punctuality is our priority, ensuring your business operations run smoothly."
+            icon={Clock}
+            delay={300}
+          />
         </div>
       </div>
     </section>

@@ -1,11 +1,10 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
-import ServicesCards from "./ServicesCards";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen bg-kargon-blue flex items-center overflow-hidden pb-32">
+    <section className="relative min-h-screen bg-kargon-blue flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img 
           src="/lovable-uploads/9bc9bb5d-5345-4122-9396-f69e5f467fc3.png" 
@@ -16,7 +15,7 @@ const HeroSection = () => {
       </div>
       
       <div className="container mx-auto px-4 md:px-6 relative z-10 pt-20">
-        <div className="max-w-3xl mb-16">
+        <div className="max-w-3xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
             Transport your<br />cargo everywhere
           </h1>
@@ -28,8 +27,6 @@ const HeroSection = () => {
             <ChevronRight size={20} />
           </Button>
         </div>
-        
-        <ServicesCards />
       </div>
     </section>
   );
