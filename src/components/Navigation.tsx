@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Truck } from "lucide-react";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -33,10 +33,10 @@ const Navigation = () => {
           <Link to="/" className="flex items-center gap-2">
             <div className="flex items-center">
               <div className="h-10 w-10 bg-kargon-red rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">K</span>
+                <Truck className="text-white" size={20} />
               </div>
               <span className={`ml-2 font-display font-bold text-xl ${isScrolled ? 'text-kargon-dark' : 'text-white'}`}>
-                KARGON
+                AURACARGO
               </span>
             </div>
           </Link>

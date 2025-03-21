@@ -1,5 +1,4 @@
-
-import { Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram, ArrowRight } from "lucide-react";
+import { Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram, ArrowRight, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -11,9 +10,9 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="h-10 w-10 bg-kargon-red rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">K</span>
+                <Truck className="text-white" size={20} />
               </div>
-              <span className="ml-2 font-display font-bold text-xl text-white">KARGON</span>
+              <span className="ml-2 font-display font-bold text-xl text-white">AURACARGO</span>
             </div>
             <p className="text-gray-300 mb-6">
               We pride ourselves on providing the best logistics and transportation services worldwide.
@@ -108,7 +107,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">
-          <p>© {new Date().getFullYear()} Kargon. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} AuraCargo. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Truck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const HeroSection = () => {
@@ -13,6 +13,9 @@ const HeroSection = () => {
           className="w-full h-full object-cover"
           loading="eager" 
           fetchPriority="high"
+          width="1920"
+          height="1080"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-kargon-dark/70 to-kargon-blue/30"></div>
       </div>
