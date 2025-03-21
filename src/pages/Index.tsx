@@ -1,12 +1,54 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useEffect } from "react";
+import Navigation from "@/components/Navigation";
+import HeroSection from "@/components/HeroSection";
+import ServicesCards from "@/components/ServicesCards";
+import AboutSection from "@/components/AboutSection";
+import ServicesSection from "@/components/ServicesSection";
+import WorkflowSection from "@/components/WorkflowSection";
+import StatsSection from "@/components/StatsSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
+import BlogSection from "@/components/BlogSection";
+import Footer from "@/components/Footer";
 
 const Index = () => {
+  useEffect(() => {
+    // Initialize scroll animations
+    const handleScroll = () => {
+      const scrollAnimElements = document.querySelectorAll('.scroll-animate');
+      scrollAnimElements.forEach(element => {
+        const elementTop = element.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+        if (elementTop < windowHeight * 0.9) {
+          element.classList.add('appear');
+        }
+      });
+    };
+
+    // Initial check on load
+    setTimeout(handleScroll, 100);
+
+    // Add event listener
+    window.addEventListener('scroll', handleScroll);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="bg-white">
+      <Navigation />
+      <HeroSection />
+      <ServicesCards />
+      <AboutSection />
+      <ServicesSection />
+      <WorkflowSection />
+      <StatsSection />
+      <TestimonialsSection />
+      <BlogSection />
+      <Footer />
     </div>
   );
 };

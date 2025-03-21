@@ -1,3 +1,6 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 358 70% 50%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -96,6 +99,80 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold;
+  }
+}
+
+.service-card {
+  @apply relative overflow-hidden rounded-lg;
+  height: 260px;
+}
+
+.service-card-overlay {
+  @apply absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-6 flex flex-col justify-end text-white transition-all duration-300;
+}
+
+.service-card:hover .service-card-overlay {
+  @apply from-kargon-red/90 to-kargon-red/60;
+}
+
+.service-card-icon {
+  @apply bg-white rounded-full p-3 w-12 h-12 flex items-center justify-center mb-3 transition-transform duration-300;
+}
+
+.service-card:hover .service-card-icon {
+  @apply transform scale-110;
+}
+
+.numbered-process-item {
+  @apply relative pl-14 pb-8;
+}
+
+.numbered-process-item::before {
+  content: "";
+  @apply absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200;
+}
+
+.numbered-process-item:last-child::before {
+  @apply bottom-8;
+}
+
+.numbered-process-item .number {
+  @apply absolute left-0 top-0 w-10 h-10 rounded-full bg-kargon-red text-white flex items-center justify-center font-bold z-10;
+}
+
+.blog-card {
+  @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300;
+}
+
+.blog-card:hover {
+  @apply shadow-lg -translate-y-1;
+}
+
+.nav-link {
+  @apply relative;
+}
+
+.nav-link::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-kargon-red transition-all duration-300;
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+  @apply w-full;
+}
+
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.scroll-animate.appear {
+  opacity: 1;
+  transform: translateY(0);
 }
