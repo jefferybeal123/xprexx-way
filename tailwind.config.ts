@@ -58,6 +58,7 @@ export default {
 					dark: '#1b2129',
 					blue: '#104c8f',
 				},
+				'milk-texture': '#F7F7F7',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -141,8 +142,8 @@ export default {
 				'scale-in': 'scale-in 0.3s ease-out'
 			},
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				display: ['Poppins', 'sans-serif']
+				sans: ['Outfit', 'sans-serif'],
+				display: ['Outfit', 'sans-serif']
 			}
 		}
 	},

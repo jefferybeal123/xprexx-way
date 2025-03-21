@@ -7,8 +7,8 @@ const HeroSection = () => {
     <section className="relative min-h-screen bg-kargon-blue flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img 
-          src="/lovable-uploads/adca88c5-d496-48f1-ad5b-d09424c574af.png" 
-          alt="Cargo Ship" 
+          src="/lovable-uploads/9bc9bb5d-5345-4122-9396-f69e5f467fc3.png" 
+          alt="Cargo Port with Containers" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-kargon-dark/70 to-kargon-blue/30"></div>

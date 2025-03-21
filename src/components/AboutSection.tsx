@@ -5,7 +5,7 @@ import ScrollAnimation from "./ScrollAnimation";
 
 const AboutSection = () => {
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-milk-texture">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="order-2 lg:order-1">
@@ -41,8 +41,8 @@ const AboutSection = () => {
           <div className="order-1 lg:order-2">
             <ScrollAnimation delay={200} className="relative">
               <img
-                src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-                alt="Shipping Containers"
+                src="/lovable-uploads/1e21aeaa-540f-4dde-8a28-4ab829e83c16.png"
+                alt="Container Port"
                 className="rounded-lg shadow-lg w-full object-cover"
                 style={{ height: '400px' }}
               />
