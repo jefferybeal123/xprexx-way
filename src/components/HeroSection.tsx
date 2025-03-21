@@ -11,6 +11,8 @@ const HeroSection = () => {
           src="/lovable-uploads/9bc9bb5d-5345-4122-9396-f69e5f467fc3.png" 
           alt="Cargo Port with Containers" 
           className="w-full h-full object-cover"
+          loading="eager" 
+          fetchpriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-kargon-dark/70 to-kargon-blue/30"></div>
       </div>
