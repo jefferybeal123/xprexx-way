@@ -50,8 +50,8 @@ const Index = () => {
       <WorkflowSection />
       <StatsSection />
       <TestimonialsSection />
-      <ContactForm />
       <UpdatesSection />
+      <ContactForm />
       <Footer />
     </div>
   );
