@@ -2,21 +2,26 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Truck } from "lucide-react";
+import { Menu, X, Truck, UserCircle } from "lucide-react";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
+    // For demo purposes, we'll consider user logged in if they're on the dashboard
+    // In a real app, this would check authentication state from your auth provider
+    setIsLoggedIn(location.pathname.includes('/dashboard'));
+    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -55,19 +60,35 @@ const Navigation = () => {
             <Link to="/contact" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/contact') ? 'active' : ''}`}>
               CONTACT
             </Link>
+            {isLoggedIn && (
+              <Link to="/dashboard" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/dashboard') ? 'active' : ''}`}>
+                DASHBOARD
+              </Link>
+            )}
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost" className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}>
-                LOGIN
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white rounded-md">
-                GET QUOTE
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link to="/dashboard">
+                <Button variant="ghost" className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}>
+                  <UserCircle className="mr-2 h-5 w-5" />
+                  MY ACCOUNT
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}>
+                    LOGIN
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white rounded-md">
+                    GET QUOTE
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -101,14 +122,27 @@ const Navigation = () => {
               <Link to="/contact" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/contact') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 CONTACT
               </Link>
-              <Link to="/login" className="font-medium text-kargon-dark hover:text-kargon-red py-2" onClick={() => setIsMenuOpen(false)}>
-                LOGIN
-              </Link>
-              <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
-                <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white w-full rounded-md mt-4">
-                  GET QUOTE
-                </Button>
-              </Link>
+              {isLoggedIn && (
+                <Link to="/dashboard" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/dashboard') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
+                  DASHBOARD
+                </Link>
+              )}
+              {isLoggedIn ? (
+                <Link to="/dashboard" className="font-medium text-kargon-dark hover:text-kargon-red py-2" onClick={() => setIsMenuOpen(false)}>
+                  MY ACCOUNT
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login" className="font-medium text-kargon-dark hover:text-kargon-red py-2" onClick={() => setIsMenuOpen(false)}>
+                    LOGIN
+                  </Link>
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                    <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white w-full rounded-md mt-4">
+                      GET QUOTE
+                    </Button>
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
         </div>

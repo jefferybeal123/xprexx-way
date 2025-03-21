@@ -12,16 +12,24 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     // This is just a placeholder for authentication logic
     // In a real app, this would connect to your auth service
     if (email && password) {
-      // For demo purposes, just navigate to home
-      navigate("/");
+      // Simulate network request
+      setTimeout(() => {
+        setIsLoading(false);
+        // Navigate to dashboard after successful login
+        navigate("/dashboard");
+      }, 1500);
     } else {
+      setIsLoading(false);
       setError("Please enter both email and password");
     }
   };
@@ -74,8 +82,12 @@ const Login = () => {
               />
             </div>
             
-            <Button type="submit" className="w-full bg-kargon-red hover:bg-kargon-red/90 text-white">
-              LOGIN
+            <Button 
+              type="submit" 
+              className="w-full bg-kargon-red hover:bg-kargon-red/90 text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? "LOGGING IN..." : "LOGIN"}
             </Button>
             
             <div className="text-center mt-4">
