@@ -28,7 +28,7 @@ const services = [
     id: 4,
     title: "Road Freight",
     icon: Truck,
-    image: "/lovable-uploads/3a1b8055-f4b1-4340-ac19-94530c129084.png",
+    image: "https://images.unsplash.com/photo-1519003722824-194d4c65efd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
     delay: 300
   },
 ];
