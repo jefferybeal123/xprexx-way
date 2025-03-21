@@ -2,18 +2,20 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Truck, UserCircle } from "lucide-react";
+import { Menu, X, Truck, UserCircle, Shield } from "lucide-react";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     // For demo purposes, we'll consider user logged in if they're on the dashboard
-    // In a real app, this would check authentication state from your auth provider
-    setIsLoggedIn(location.pathname.includes('/dashboard'));
+    // And admin if the path includes 'admin'
+    setIsLoggedIn(location.pathname.includes('/dashboard') || location.pathname.includes('/admin'));
+    setIsAdmin(location.pathname.includes('/admin'));
     
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -65,16 +67,31 @@ const Navigation = () => {
                 DASHBOARD
               </Link>
             )}
+            {isAdmin && (
+              <Link to="/admin" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/admin') ? 'active' : ''}`}>
+                ADMIN
+              </Link>
+            )}
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
-              <Link to="/dashboard">
-                <Button variant="ghost" className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}>
-                  <UserCircle className="mr-2 h-5 w-5" />
-                  MY ACCOUNT
-                </Button>
-              </Link>
+              <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="ghost" className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}>
+                      <Shield className="mr-2 h-5 w-5" />
+                      ADMIN
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/dashboard">
+                  <Button variant="ghost" className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}>
+                    <UserCircle className="mr-2 h-5 w-5" />
+                    MY ACCOUNT
+                  </Button>
+                </Link>
+              </div>
             ) : (
               <>
                 <Link to="/login">
@@ -127,10 +144,22 @@ const Navigation = () => {
                   DASHBOARD
                 </Link>
               )}
-              {isLoggedIn ? (
-                <Link to="/dashboard" className="font-medium text-kargon-dark hover:text-kargon-red py-2" onClick={() => setIsMenuOpen(false)}>
-                  MY ACCOUNT
+              {isAdmin && (
+                <Link to="/admin" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/admin') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
+                  ADMIN
                 </Link>
+              )}
+              {isLoggedIn ? (
+                <div className="pt-2">
+                  {isAdmin && (
+                    <Link to="/admin" className="font-medium text-kargon-dark hover:text-kargon-red py-2 flex items-center" onClick={() => setIsMenuOpen(false)}>
+                      <Shield className="mr-2 h-5 w-5" /> ADMIN PANEL
+                    </Link>
+                  )}
+                  <Link to="/dashboard" className="font-medium text-kargon-dark hover:text-kargon-red py-2 flex items-center" onClick={() => setIsMenuOpen(false)}>
+                    <UserCircle className="mr-2 h-5 w-5" /> MY ACCOUNT
+                  </Link>
+                </div>
               ) : (
                 <>
                   <Link to="/login" className="font-medium text-kargon-dark hover:text-kargon-red py-2" onClick={() => setIsMenuOpen(false)}>
