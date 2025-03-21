@@ -1,11 +1,13 @@
 
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PhoneCall, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +18,10 @@ const Navigation = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -24,7 +30,7 @@ const Navigation = () => {
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="flex items-center">
               <div className="h-10 w-10 bg-kargon-red rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-xl">K</span>
@@ -33,34 +39,41 @@ const Navigation = () => {
                 KARGON
               </span>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <a href="/" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red`}>
+            <Link to="/" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/') ? 'active' : ''}`}>
               HOME
-            </a>
-            <a href="/about" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red`}>
+            </Link>
+            <Link to="/about" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/about') ? 'active' : ''}`}>
               ABOUT
-            </a>
-            <a href="/services" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red`}>
+            </Link>
+            <Link to="/services" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/services') ? 'active' : ''}`}>
               SERVICES
-            </a>
-            <a href="/projects" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red`}>
+            </Link>
+            <Link to="/projects" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/projects') ? 'active' : ''}`}>
               PROJECTS
-            </a>
-            <a href="/blog" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red`}>
+            </Link>
+            <Link to="/blog" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/blog') ? 'active' : ''}`}>
               BLOG
-            </a>
-            <a href="/contact" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red`}>
+            </Link>
+            <Link to="/contact" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/contact') ? 'active' : ''}`}>
               CONTACT
-            </a>
+            </Link>
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white rounded-md">
-              GET QUOTE
-            </Button>
+            <Link to="/login">
+              <Button variant="ghost" className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}>
+                LOGIN
+              </Button>
+            </Link>
+            <Link to="/signup">
+              <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white rounded-md">
+                GET QUOTE
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -82,27 +95,32 @@ const Navigation = () => {
         <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-md py-4 animate-fade-in">
           <div className="container mx-auto px-4">
             <nav className="flex flex-col space-y-4">
-              <a href="/" className="font-medium text-kargon-dark hover:text-kargon-red py-2">
+              <Link to="/" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 HOME
-              </a>
-              <a href="/about" className="font-medium text-kargon-dark hover:text-kargon-red py-2">
+              </Link>
+              <Link to="/about" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/about') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 ABOUT
-              </a>
-              <a href="/services" className="font-medium text-kargon-dark hover:text-kargon-red py-2">
+              </Link>
+              <Link to="/services" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/services') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 SERVICES
-              </a>
-              <a href="/projects" className="font-medium text-kargon-dark hover:text-kargon-red py-2">
+              </Link>
+              <Link to="/projects" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/projects') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 PROJECTS
-              </a>
-              <a href="/blog" className="font-medium text-kargon-dark hover:text-kargon-red py-2">
+              </Link>
+              <Link to="/blog" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/blog') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 BLOG
-              </a>
-              <a href="/contact" className="font-medium text-kargon-dark hover:text-kargon-red py-2">
+              </Link>
+              <Link to="/contact" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/contact') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 CONTACT
-              </a>
-              <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white w-full rounded-md mt-4">
-                GET QUOTE
-              </Button>
+              </Link>
+              <Link to="/login" className="font-medium text-kargon-dark hover:text-kargon-red py-2" onClick={() => setIsMenuOpen(false)}>
+                LOGIN
+              </Link>
+              <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white w-full rounded-md mt-4">
+                  GET QUOTE
+                </Button>
+              </Link>
             </nav>
           </div>
         </div>
