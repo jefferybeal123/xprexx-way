@@ -1,3 +1,4 @@
+
 import { Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram, ArrowRight, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +31,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Mail size={20} className="text-kargon-red" />
-                <a href="mailto:info@kargon.com" className="text-gray-300 hover:text-white transition-colors">
-                  info@kargon.com
+                <a href="mailto:info@auracargo.com" className="text-gray-300 hover:text-white transition-colors">
+                  info@auracargo.com
                 </a>
               </div>
             </div>
@@ -40,9 +41,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-6">Quick Links</h3>
             <div className="grid grid-cols-2 gap-2">
-              <a href="/about" className="text-gray-300 hover:text-white transition-colors py-1 flex items-center">
+              <a href="/" className="text-gray-300 hover:text-white transition-colors py-1 flex items-center">
                 <ArrowRight size={14} className="mr-2 text-kargon-red" />
-                About Us
+                Home
               </a>
               <a href="/services" className="text-gray-300 hover:text-white transition-colors py-1 flex items-center">
                 <ArrowRight size={14} className="mr-2 text-kargon-red" />
@@ -51,10 +52,6 @@ const Footer = () => {
               <a href="/projects" className="text-gray-300 hover:text-white transition-colors py-1 flex items-center">
                 <ArrowRight size={14} className="mr-2 text-kargon-red" />
                 Projects
-              </a>
-              <a href="/blog" className="text-gray-300 hover:text-white transition-colors py-1 flex items-center">
-                <ArrowRight size={14} className="mr-2 text-kargon-red" />
-                Blog
               </a>
               <a href="/contact" className="text-gray-300 hover:text-white transition-colors py-1 flex items-center">
                 <ArrowRight size={14} className="mr-2 text-kargon-red" />

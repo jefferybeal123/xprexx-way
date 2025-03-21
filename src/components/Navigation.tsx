@@ -46,17 +46,11 @@ const Navigation = () => {
             <Link to="/" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/') ? 'active' : ''}`}>
               HOME
             </Link>
-            <Link to="/about" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/about') ? 'active' : ''}`}>
-              ABOUT
-            </Link>
             <Link to="/services" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/services') ? 'active' : ''}`}>
               SERVICES
             </Link>
             <Link to="/projects" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/projects') ? 'active' : ''}`}>
               PROJECTS
-            </Link>
-            <Link to="/blog" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/blog') ? 'active' : ''}`}>
-              BLOG
             </Link>
             <Link to="/contact" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/contact') ? 'active' : ''}`}>
               CONTACT
@@ -98,17 +92,11 @@ const Navigation = () => {
               <Link to="/" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 HOME
               </Link>
-              <Link to="/about" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/about') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
-                ABOUT
-              </Link>
               <Link to="/services" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/services') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 SERVICES
               </Link>
               <Link to="/projects" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/projects') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 PROJECTS
-              </Link>
-              <Link to="/blog" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/blog') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
-                BLOG
               </Link>
               <Link to="/contact" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/contact') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 CONTACT

@@ -30,10 +30,10 @@ const AboutSection = () => {
               </div>
               <div className="flex flex-wrap gap-4">
                 <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white rounded-md">
-                  ABOUT COMPANY
+                  OUR SERVICES
                 </Button>
                 <Button variant="outline" className="border-kargon-red text-kargon-red hover:bg-kargon-red/10">
-                  EXPLORE SERVICES
+                  EXPLORE PROJECTS
                 </Button>
               </div>
             </ScrollAnimation>
@@ -47,8 +47,8 @@ const AboutSection = () => {
                 style={{ height: '400px' }}
               />
               <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-lg shadow-lg">
-                <div className="text-5xl font-bold text-kargon-red">426</div>
-                <div className="font-medium">Successful Transports</div>
+                <div className="text-5xl font-bold text-kargon-red">10M+</div>
+                <div className="font-medium">Successful Deliveries</div>
               </div>
             </ScrollAnimation>
           </div>
