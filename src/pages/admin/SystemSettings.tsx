@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -336,7 +335,7 @@ const SystemSettings = () => {
                     <p className="text-sm text-muted-foreground">Credit card processing</p>
                   </div>
                 </div>
-                <Badge variant="success">Connected</Badge>
+                <Badge variant="default">Connected</Badge>
               </div>
               
               <div className="flex items-center justify-between py-2">
@@ -370,7 +369,7 @@ const SystemSettings = () => {
                     <p className="text-sm text-muted-foreground">Direct bank payments</p>
                   </div>
                 </div>
-                <Badge variant="success">Enabled</Badge>
+                <Badge variant="default">Enabled</Badge>
               </div>
             </CardContent>
           </Card>
@@ -397,7 +396,7 @@ const SystemSettings = () => {
                     <p className="text-sm text-muted-foreground">Express shipping service</p>
                   </div>
                 </div>
-                <Badge variant="success">Connected</Badge>
+                <Badge variant="default">Connected</Badge>
               </div>
               
               <div className="flex items-center justify-between py-2">
@@ -433,7 +432,7 @@ const SystemSettings = () => {
                     <p className="text-sm text-muted-foreground">International shipping</p>
                   </div>
                 </div>
-                <Badge variant="success">Connected</Badge>
+                <Badge variant="default">Connected</Badge>
               </div>
             </CardContent>
           </Card>

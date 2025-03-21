@@ -99,7 +99,7 @@ const UsersPage = () => {
                 </TableCell>
                 <TableCell>
                   <Badge variant={
-                    user.status === "Active" ? "success" : 
+                    user.status === "Active" ? "default" : // Changed from "success" to "default"
                     user.status === "Suspended" ? "destructive" : "outline"
                   }>
                     {user.status}

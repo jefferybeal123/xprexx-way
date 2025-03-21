@@ -43,8 +43,8 @@ const PaymentsManagement = () => {
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Completed": return "success";
-      case "Pending": return "warning";
+      case "Completed": return "default"; // Changed from "success" to "default"
+      case "Pending": return "secondary"; // Changed from "warning" to "secondary"
       case "Failed": return "destructive";
       default: return "outline";
     }

@@ -35,8 +35,8 @@ const ShipmentsManagement = () => {
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Delivered": return "success";
-      case "In Transit": return "default";
+      case "Delivered": return "default"; // Changed from "success" to "default"
+      case "In Transit": return "secondary";
       case "Processing": return "secondary";
       case "Delayed": return "destructive";
       default: return "outline";
