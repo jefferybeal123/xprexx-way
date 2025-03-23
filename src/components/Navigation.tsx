@@ -2,28 +2,23 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Truck, UserCircle, Shield } from "lucide-react";
+import { Menu, X, Truck, UserCircle, Shield, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
+  const { user, profile, signOut, isAdmin } = useAuth();
 
   useEffect(() => {
-    // For demo purposes, we'll consider user logged in if they're on the dashboard
-    // And admin if the path includes 'admin'
-    setIsLoggedIn(location.pathname.includes('/dashboard') || location.pathname.includes('/admin'));
-    setIsAdmin(location.pathname.includes('/admin'));
-    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [location.pathname]);
+  }, []);
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -62,7 +57,7 @@ const Navigation = () => {
             <Link to="/contact" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/contact') ? 'active' : ''}`}>
               CONTACT
             </Link>
-            {isLoggedIn && (
+            {user && (
               <Link to="/dashboard" className={`nav-link font-medium ${isScrolled ? 'text-kargon-dark' : 'text-white'} hover:text-kargon-red ${isActive('/dashboard') ? 'active' : ''}`}>
                 DASHBOARD
               </Link>
@@ -75,7 +70,7 @@ const Navigation = () => {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            {isLoggedIn ? (
+            {user ? (
               <div className="flex items-center gap-2">
                 {isAdmin && (
                   <Link to="/admin">
@@ -91,6 +86,14 @@ const Navigation = () => {
                     MY ACCOUNT
                   </Button>
                 </Link>
+                <Button 
+                  variant="ghost" 
+                  className={`font-medium ${isScrolled ? 'text-kargon-dark hover:text-kargon-red' : 'text-white hover:text-white/80'} hover:bg-transparent`}
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="mr-2 h-5 w-5" />
+                  LOGOUT
+                </Button>
               </div>
             ) : (
               <>
@@ -139,7 +142,7 @@ const Navigation = () => {
               <Link to="/contact" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/contact') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                 CONTACT
               </Link>
-              {isLoggedIn && (
+              {user && (
                 <Link to="/dashboard" className={`font-medium text-kargon-dark hover:text-kargon-red py-2 ${isActive('/dashboard') ? 'text-kargon-red' : ''}`} onClick={() => setIsMenuOpen(false)}>
                   DASHBOARD
                 </Link>
@@ -149,7 +152,8 @@ const Navigation = () => {
                   ADMIN
                 </Link>
               )}
-              {isLoggedIn ? (
+              
+              {user ? (
                 <div className="pt-2">
                   {isAdmin && (
                     <Link to="/admin" className="font-medium text-kargon-dark hover:text-kargon-red py-2 flex items-center" onClick={() => setIsMenuOpen(false)}>
@@ -159,6 +163,15 @@ const Navigation = () => {
                   <Link to="/dashboard" className="font-medium text-kargon-dark hover:text-kargon-red py-2 flex items-center" onClick={() => setIsMenuOpen(false)}>
                     <UserCircle className="mr-2 h-5 w-5" /> MY ACCOUNT
                   </Link>
+                  <button 
+                    className="font-medium text-kargon-dark hover:text-kargon-red py-2 flex items-center" 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      signOut();
+                    }}
+                  >
+                    <LogOut className="mr-2 h-5 w-5" /> LOGOUT
+                  </button>
                 </div>
               ) : (
                 <>

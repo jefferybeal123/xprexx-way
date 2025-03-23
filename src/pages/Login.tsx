@@ -1,35 +1,42 @@
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navigation from "@/components/Navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const { signIn, user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If user is already logged in, redirect to dashboard
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
     
-    // This is just a placeholder for authentication logic
-    // In a real app, this would connect to your auth service
-    if (email && password) {
-      // Simulate network request
-      setTimeout(() => {
-        setIsLoading(false);
-        // Navigate to dashboard after successful login
-        navigate("/dashboard");
-      }, 1500);
-    } else {
-      setIsLoading(false);
+    if (!email || !password) {
       setError("Please enter both email and password");
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      await signIn(email, password);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 

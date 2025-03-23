@@ -1,28 +1,50 @@
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navigation from "@/components/Navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp, user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If user is already logged in, redirect to dashboard
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // This is just a placeholder for authentication logic
-    // In a real app, this would connect to your auth service
-    if (name && email && password) {
-      // For demo purposes, just navigate to login
-      navigate("/login");
-    } else {
+    setError("");
+    setIsLoading(true);
+    
+    if (!firstName || !lastName || !email || !password) {
       setError("Please fill in all fields");
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      await signUp(email, password, firstName, lastName);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,13 +70,24 @@ const Signup = () => {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="firstName">First Name</Label>
               <Input
-                id="name"
+                id="firstName"
                 type="text"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your first name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Enter your last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
               />
             </div>
             
@@ -78,10 +111,15 @@ const Signup = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
             </div>
             
-            <Button type="submit" className="w-full bg-kargon-red hover:bg-kargon-red/90 text-white">
-              SIGN UP
+            <Button 
+              type="submit" 
+              className="w-full bg-kargon-red hover:bg-kargon-red/90 text-white"
+              disabled={isLoading}
+            >
+              {isLoading ? "SIGNING UP..." : "SIGN UP"}
             </Button>
             
             <div className="text-center mt-4">

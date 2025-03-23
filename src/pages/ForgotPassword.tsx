@@ -1,28 +1,50 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If user is already logged in, redirect to dashboard
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
     
     if (!email) {
       setError("Please enter your email address");
+      setIsLoading(false);
       return;
     }
     
-    // In a real app, this would connect to your auth service
-    // For demo purposes, we'll just show a success message
-    setIsSubmitted(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) throw error;
+      
+      setIsSubmitted(true);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -72,8 +94,12 @@ const ForgotPassword = () => {
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-kargon-red hover:bg-kargon-red/90 text-white">
-                Reset Password
+              <Button 
+                type="submit" 
+                className="w-full bg-kargon-red hover:bg-kargon-red/90 text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? "SUBMITTING..." : "Reset Password"}
               </Button>
               
               <div className="text-center mt-4">
