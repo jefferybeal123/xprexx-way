@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Table, 
@@ -51,14 +50,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Define the user type
+// Define the user type with specific status values
 interface User {
   id: string;
   email: string;
   first_name: string;
   last_name: string;
   role: 'admin' | 'staff' | 'customer';
-  status: string;
+  status: 'Active' | 'Suspended' | 'Inactive';
 }
 
 // Form schema for adding/editing users
@@ -123,7 +122,16 @@ const UsersPage = () => {
       
       if (error) throw error;
       
-      setUsers(data || []);
+      // Ensure all user status values conform to our expected type
+      const typedUsers = data?.map(user => ({
+        ...user,
+        // Ensure status is one of the allowed values
+        status: (user.status === 'Active' || user.status === 'Suspended' || user.status === 'Inactive') 
+          ? user.status as 'Active' | 'Suspended' | 'Inactive'
+          : 'Active' // Default to 'Active' if status is not one of the expected values
+      })) || [];
+      
+      setUsers(typedUsers);
     } catch (error: any) {
       console.error('Error fetching users:', error.message);
       setError(error.message);
@@ -149,7 +157,7 @@ const UsersPage = () => {
 
   // Handle user status change
   const toggleUserStatus = async (user: User) => {
-    const newStatus = user.status === "Active" ? "Suspended" : "Active";
+    const newStatus = user.status === "Active" ? "Suspended" as const : "Active" as const;
     
     try {
       const { error } = await supabase
