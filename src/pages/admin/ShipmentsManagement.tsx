@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Table, 
   TableBody, 
@@ -12,35 +12,91 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Package, Eye, Pencil } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Shipment {
+  id: string;
+  tracking_number: string;
+  origin: string;
+  destination: string;
+  status: string;
+  created_at: string;
+  profiles: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+}
 
 const ShipmentsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Mock shipment data
-  const shipments = [
-    { id: "SH-12345", customer: "John Doe", origin: "New York", destination: "Los Angeles", status: "In Transit", date: "2023-06-15" },
-    { id: "SH-12346", customer: "Jane Smith", origin: "Chicago", destination: "Miami", status: "Delivered", date: "2023-06-12" },
-    { id: "SH-12347", customer: "Bob Johnson", origin: "Seattle", destination: "Denver", status: "Processing", date: "2023-06-17" },
-    { id: "SH-12348", customer: "Alice Brown", origin: "Boston", destination: "Atlanta", status: "In Transit", date: "2023-06-14" },
-    { id: "SH-12349", customer: "Charlie Wilson", origin: "San Francisco", destination: "Las Vegas", status: "Delayed", date: "2023-06-13" },
-    { id: "SH-12350", customer: "Diana Miller", origin: "Portland", destination: "Phoenix", status: "Processing", date: "2023-06-18" },
-    { id: "SH-12351", customer: "Edward Davis", origin: "Houston", destination: "Detroit", status: "Delivered", date: "2023-06-10" },
-    { id: "SH-12352", customer: "Fiona Clark", origin: "Dallas", destination: "Philadelphia", status: "In Transit", date: "2023-06-16" },
-  ];
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchShipments = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const { data, error } = await supabase
+          .from('shipments')
+          .select(`
+            id,
+            tracking_number,
+            origin,
+            destination,
+            status,
+            created_at,
+            profiles:user_id (
+              email,
+              first_name,
+              last_name
+            )
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        setShipments(data || []);
+      } catch (err: any) {
+        console.error('Error fetching shipments:', err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchShipments();
+  }, []);
   
   const filteredShipments = shipments.filter(shipment => 
-    shipment.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    shipment.customer.toLowerCase().includes(searchTerm.toLowerCase())
+    shipment.tracking_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (shipment.profiles?.email && shipment.profiles.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Delivered": return "default"; // Changed from "success" to "default"
+      case "Delivered": return "default";
       case "In Transit": return "secondary";
       case "Processing": return "secondary";
       case "Delayed": return "destructive";
       default: return "outline";
     }
+  };
+
+  const getCustomerName = (shipment: Shipment) => {
+    if (!shipment.profiles) return "Unknown";
+    
+    const firstName = shipment.profiles.first_name || "";
+    const lastName = shipment.profiles.last_name || "";
+    
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    
+    return shipment.profiles.email;
   };
 
   return (
@@ -74,45 +130,59 @@ const ShipmentsManagement = () => {
       </div>
       
       <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tracking ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Origin</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredShipments.map((shipment) => (
-              <TableRow key={shipment.id}>
-                <TableCell className="font-medium">{shipment.id}</TableCell>
-                <TableCell>{shipment.customer}</TableCell>
-                <TableCell>{shipment.origin}</TableCell>
-                <TableCell>{shipment.destination}</TableCell>
-                <TableCell>{shipment.date}</TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(shipment.status)}>
-                    {shipment.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        {isLoading ? (
+          <div className="p-8 text-center">Loading shipments...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-500">Error: {error}</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tracking ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Origin</TableHead>
+                <TableHead>Destination</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredShipments.length > 0 ? (
+                filteredShipments.map((shipment) => (
+                  <TableRow key={shipment.id}>
+                    <TableCell className="font-medium">{shipment.tracking_number}</TableCell>
+                    <TableCell>{getCustomerName(shipment)}</TableCell>
+                    <TableCell>{shipment.origin}</TableCell>
+                    <TableCell>{shipment.destination}</TableCell>
+                    <TableCell>{new Date(shipment.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(shipment.status)}>
+                        {shipment.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">
+                    No shipments found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   );

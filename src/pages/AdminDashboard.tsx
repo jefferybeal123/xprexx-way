@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -8,10 +8,19 @@ import UsersPage from "./admin/Users";
 import ShipmentsManagement from "./admin/ShipmentsManagement";
 import PaymentsManagement from "./admin/PaymentsManagement";
 import SystemSettings from "./admin/SystemSettings";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+
+  useEffect(() => {
+    // Extra safety check - if somehow an unauthorized user gets to this page, redirect them
+    if (user && !isAdmin) {
+      navigate("/dashboard");
+    }
+  }, [user, isAdmin, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50">

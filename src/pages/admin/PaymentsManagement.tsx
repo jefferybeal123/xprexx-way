@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Table, 
   TableBody, 
@@ -20,47 +20,103 @@ import {
   BarChart
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Payment {
+  id: string;
+  amount: number;
+  status: string;
+  payment_method: string;
+  created_at: string;
+  transaction_id: string | null;
+  profiles: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+}
 
 const PaymentsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Mock payment data
-  const payments = [
-    { id: "PAY-12345", customer: "John Doe", amount: 1250.00, method: "Credit Card", status: "Completed", date: "2023-06-15" },
-    { id: "PAY-12346", customer: "Jane Smith", amount: 850.50, method: "PayPal", status: "Completed", date: "2023-06-12" },
-    { id: "PAY-12347", customer: "Bob Johnson", amount: 1500.00, method: "Bank Transfer", status: "Pending", date: "2023-06-17" },
-    { id: "PAY-12348", customer: "Alice Brown", amount: 950.25, method: "Credit Card", status: "Completed", date: "2023-06-14" },
-    { id: "PAY-12349", customer: "Charlie Wilson", amount: 2200.00, method: "PayPal", status: "Failed", date: "2023-06-13" },
-    { id: "PAY-12350", customer: "Diana Miller", amount: 1100.75, method: "Credit Card", status: "Pending", date: "2023-06-18" },
-    { id: "PAY-12351", customer: "Edward Davis", amount: 750.50, method: "Bank Transfer", status: "Completed", date: "2023-06-10" },
-    { id: "PAY-12352", customer: "Fiona Clark", amount: 1800.00, method: "Credit Card", status: "Completed", date: "2023-06-16" },
-  ];
+  useEffect(() => {
+    const fetchPayments = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const { data, error } = await supabase
+          .from('payments')
+          .select(`
+            id,
+            amount,
+            status,
+            payment_method,
+            created_at,
+            transaction_id,
+            profiles:user_id (
+              email,
+              first_name,
+              last_name
+            )
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        setPayments(data || []);
+      } catch (err: any) {
+        console.error('Error fetching payments:', err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPayments();
+  }, []);
   
   const filteredPayments = payments.filter(payment => 
-    payment.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    payment.customer.toLowerCase().includes(searchTerm.toLowerCase())
+    payment.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (payment.profiles?.email && payment.profiles.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Completed": return "default"; // Changed from "success" to "default"
-      case "Pending": return "secondary"; // Changed from "warning" to "secondary"
+      case "Completed": return "default";
+      case "Pending": return "secondary";
       case "Failed": return "destructive";
       default: return "outline";
     }
   };
 
+  const getCustomerName = (payment: Payment) => {
+    if (!payment.profiles) return "Unknown";
+    
+    const firstName = payment.profiles.first_name || "";
+    const lastName = payment.profiles.last_name || "";
+    
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    
+    return payment.profiles.email;
+  };
+
   // Calculate summary statistics
   const totalRevenue = payments.reduce((sum, payment) => 
-    payment.status === "Completed" ? sum + payment.amount : sum, 0
+    payment.status === "Completed" ? sum + Number(payment.amount) : sum, 0
   );
   
   const pendingRevenue = payments.reduce((sum, payment) => 
-    payment.status === "Pending" ? sum + payment.amount : sum, 0
+    payment.status === "Pending" ? sum + Number(payment.amount) : sum, 0
   );
   
   const failedRevenue = payments.reduce((sum, payment) => 
-    payment.status === "Failed" ? sum + payment.amount : sum, 0
+    payment.status === "Failed" ? sum + Number(payment.amount) : sum, 0
   );
   
   const completedCount = payments.filter(payment => payment.status === "Completed").length;
@@ -81,8 +137,8 @@ const PaymentsManagement = () => {
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{completedCount} successful transactions</p>
+            <div className="text-2xl font-bold">${isLoading ? '...' : totalRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">{isLoading ? '...' : completedCount} successful transactions</p>
           </CardContent>
         </Card>
         
@@ -92,8 +148,8 @@ const PaymentsManagement = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${pendingRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{pendingCount} pending transactions</p>
+            <div className="text-2xl font-bold">${isLoading ? '...' : pendingRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">{isLoading ? '...' : pendingCount} pending transactions</p>
           </CardContent>
         </Card>
         
@@ -103,8 +159,8 @@ const PaymentsManagement = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${failedRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{failedCount} failed transactions</p>
+            <div className="text-2xl font-bold">${isLoading ? '...' : failedRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">{isLoading ? '...' : failedCount} failed transactions</p>
           </CardContent>
         </Card>
         
@@ -115,9 +171,10 @@ const PaymentsManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {payments.length > 0 
-                ? `${((completedCount / payments.length) * 100).toFixed(1)}%` 
-                : "0%"}
+              {isLoading ? '...' : 
+                payments.length > 0 
+                  ? `${((completedCount / payments.length) * 100).toFixed(1)}%` 
+                  : "0%"}
             </div>
             <p className="text-xs text-muted-foreground">Based on all transactions</p>
           </CardContent>
@@ -148,45 +205,59 @@ const PaymentsManagement = () => {
       </div>
       
       <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Payment ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPayments.map((payment) => (
-              <TableRow key={payment.id}>
-                <TableCell className="font-medium">{payment.id}</TableCell>
-                <TableCell>{payment.customer}</TableCell>
-                <TableCell>${payment.amount.toFixed(2)}</TableCell>
-                <TableCell>{payment.method}</TableCell>
-                <TableCell>{payment.date}</TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(payment.status)}>
-                    {payment.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        {isLoading ? (
+          <div className="p-8 text-center">Loading payments...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-500">Error: {error}</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Payment ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Method</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredPayments.length > 0 ? (
+                filteredPayments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell className="font-medium">{payment.transaction_id || payment.id.slice(0, 8)}</TableCell>
+                    <TableCell>{getCustomerName(payment)}</TableCell>
+                    <TableCell>${Number(payment.amount).toFixed(2)}</TableCell>
+                    <TableCell>{payment.payment_method}</TableCell>
+                    <TableCell>{new Date(payment.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(payment.status)}>
+                        {payment.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">
+                    No payments found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   );
