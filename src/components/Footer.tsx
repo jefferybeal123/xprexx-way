@@ -103,8 +103,11 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">
+        <div className="border-t border-gray-700 pt-6 flex flex-col sm:flex-row justify-between items-center text-gray-400 text-sm">
           <p>© {new Date().getFullYear()} AuraCargo. All rights reserved.</p>
+          <p className="mt-2 sm:mt-0">
+            Made by <a href="https://x.com/mrcontech" target="_blank" rel="noopener noreferrer" className="text-kargon-red hover:text-white transition-colors">mrcontech</a>
+          </p>
         </div>
       </div>
     </footer>
