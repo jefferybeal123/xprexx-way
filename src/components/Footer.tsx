@@ -1,4 +1,3 @@
-
 import { Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram, ArrowRight, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +36,7 @@ const Footer = () => {
               </div>
             </div>
           </div>
-
+          
           <div>
             <h3 className="text-lg font-bold mb-6">Quick Links</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -104,8 +103,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-gray-700 pt-6 flex flex-col sm:flex-row justify-between items-center text-gray-400 text-sm">
-          <p>© {new Date().getFullYear()} AuraCargo. All rights reserved.</p>
-          <p className="mt-2 sm:mt-0">
+          <p>
             Made by <a href="https://x.com/mrcontech" target="_blank" rel="noopener noreferrer" className="text-kargon-red hover:text-white transition-colors">mrcontech</a>
           </p>
         </div>

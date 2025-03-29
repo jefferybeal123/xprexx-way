@@ -197,50 +197,166 @@ export type Database = {
       shipments: {
         Row: {
           created_at: string
+          current_location: string | null
           destination: string
           dimensions: string | null
           estimated_delivery: string | null
           id: string
           origin: string
+          physical_weight: number | null
+          quantity: number | null
+          receiver_email: string | null
+          receiver_name: string | null
+          sender_email: string | null
+          sender_name: string | null
           service_type: string | null
           status: string
+          term: string | null
           tracking_number: string
           updated_at: string
           user_id: string | null
+          volume: string | null
           weight: number | null
         }
         Insert: {
           created_at?: string
+          current_location?: string | null
           destination: string
           dimensions?: string | null
           estimated_delivery?: string | null
           id?: string
           origin: string
+          physical_weight?: number | null
+          quantity?: number | null
+          receiver_email?: string | null
+          receiver_name?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
           service_type?: string | null
           status?: string
+          term?: string | null
           tracking_number: string
           updated_at?: string
           user_id?: string | null
+          volume?: string | null
           weight?: number | null
         }
         Update: {
           created_at?: string
+          current_location?: string | null
           destination?: string
           dimensions?: string | null
           estimated_delivery?: string | null
           id?: string
           origin?: string
+          physical_weight?: number | null
+          quantity?: number | null
+          receiver_email?: string | null
+          receiver_name?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
           service_type?: string | null
           status?: string
+          term?: string | null
           tracking_number?: string
           updated_at?: string
           user_id?: string | null
+          volume?: string | null
           weight?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "shipments_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_conversations: {
+        Row: {
+          created_at: string
+          guest_email: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          guest_email?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          guest_email?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          guest_email: string | null
+          guest_name: string | null
+          id: string
+          is_admin: boolean
+          read: boolean
+          sender_id: string | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          is_admin?: boolean
+          read?: boolean
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          is_admin?: boolean
+          read?: boolean
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_messages_sender_id_fkey"
+            columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -287,6 +403,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_column_if_not_exists: {
+        Args: {
+          p_table_name: string
+          p_column_name: string
+          p_data_type: string
+        }
+        Returns: undefined
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
