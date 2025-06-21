@@ -26,8 +26,7 @@ const HeroSection = () => {
             Transport your<br />cargo everywhere
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-lg">
-            Reliable and efficient logistics solutions tailored to your business needs.
-          </p>
+            you happu now     </p>
           <Link to="/signup">
             <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white rounded-md px-6 py-6 text-lg flex items-center gap-2">
               GET STARTED
