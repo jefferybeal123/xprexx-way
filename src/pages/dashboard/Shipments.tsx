@@ -1,64 +1,169 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Search, 
   Plus, 
   Filter,
   Download,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  MapPin,
+  Clock
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
+
+interface UserShipment {
+  id: string;
+  tracking_number: string;
+  origin: string;
+  destination: string;
+  status: string;
+  current_location?: string;
+  estimated_delivery?: string;
+  weight?: number;
+  dimensions?: string;
+  service_type?: string;
+  payment_status?: string;
+  is_paused?: boolean;
+  created_at: string;
+}
+
+interface TrackingEvent {
+  id: string;
+  event_type: string;
+  description: string | null;
+  location: string | null;
+  created_at: string;
+}
 
 const ShipmentsPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
-  
-  // Mock data for shipments
-  const shipments = [
-    { id: "SH-2023-001", origin: "New York, USA", destination: "London, UK", status: "in-transit", date: "2023-10-15", customer: "ABC Corp" },
-    { id: "SH-2023-002", origin: "Berlin, Germany", destination: "Paris, France", status: "delivered", date: "2023-10-10", customer: "Global Trade Ltd" },
-    { id: "SH-2023-003", origin: "Tokyo, Japan", destination: "Seoul, South Korea", status: "pending", date: "2023-10-18", customer: "Nippon Exports" },
-    { id: "SH-2023-004", origin: "Sydney, Australia", destination: "Melbourne, Australia", status: "in-transit", date: "2023-10-14", customer: "Oceanic Shipping" },
-    { id: "SH-2023-005", origin: "Dubai, UAE", destination: "Mumbai, India", status: "pending", date: "2023-10-20", customer: "Desert Traders" },
-    { id: "SH-2023-006", origin: "Los Angeles, USA", destination: "Vancouver, Canada", status: "delivered", date: "2023-10-08", customer: "Pacific Routes" },
-    { id: "SH-2023-007", origin: "Amsterdam, Netherlands", destination: "Brussels, Belgium", status: "in-transit", date: "2023-10-17", customer: "Euro Logistics" },
-    { id: "SH-2023-008", origin: "Singapore", destination: "Jakarta, Indonesia", status: "pending", date: "2023-10-22", customer: "ASEAN Cargo" }
-  ];
+  const [searchTerm, setSearchTerm] = useState("");
+  const [shipments, setShipments] = useState<UserShipment[]>([]);
+  const [selectedShipment, setSelectedShipment] = useState<UserShipment | null>(null);
+  const [trackingEvents, setTrackingEvents] = useState<TrackingEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      fetchUserShipments();
+    }
+  }, [user]);
+
+  const fetchUserShipments = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('shipments')
+        .select(`
+          id,
+          tracking_number,
+          origin,
+          destination,
+          status,
+          current_location,
+          estimated_delivery,
+          weight,
+          dimensions,
+          service_type,
+          payment_status,
+          is_paused,
+          created_at
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setShipments(data || []);
+    } catch (err: any) {
+      console.error('Error fetching shipments:', err.message);
+      toast({
+        title: "Error",
+        description: "Failed to load shipments",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchTrackingEvents = async (shipmentId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('tracking_events')
+        .select('*')
+        .eq('shipment_id', shipmentId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setTrackingEvents(data || []);
+    } catch (err: any) {
+      console.error('Error fetching tracking events:', err.message);
+    }
+  };
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case "delivered":
+      case "Delivered":
         return "bg-green-100 text-green-800 hover:bg-green-100";
-      case "in-transit":
+      case "In Transit":
+      case "Out for Delivery":
         return "bg-blue-100 text-blue-800 hover:bg-blue-100";
-      case "pending":
+      case "Order Received":
+      case "Processing":
         return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+      case "Delayed":
+      case "Exception":
+        return "bg-red-100 text-red-800 hover:bg-red-100";
       default:
         return "bg-gray-100 text-gray-800 hover:bg-gray-100";
     }
   };
 
-  const filteredShipments = statusFilter === "all" 
-    ? shipments 
-    : shipments.filter(shipment => shipment.status === statusFilter);
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-800 hover:bg-green-100";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+      case "failed":
+        return "bg-red-100 text-red-800 hover:bg-red-100";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+    }
+  };
+
+  const filteredShipments = shipments.filter(shipment => {
+    const matchesSearch = shipment.tracking_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         shipment.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         shipment.destination.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || shipment.status.toLowerCase().includes(statusFilter.toLowerCase());
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-kargon-dark">Manage Shipments</h1>
-        <Button className="bg-kargon-red hover:bg-kargon-red/90">
-          <Plus className="mr-2 h-4 w-4" /> New Shipment
-        </Button>
+        <h1 className="text-2xl font-bold text-kargon-dark">My Shipments</h1>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>All Shipments</CardTitle>
+          <CardTitle>Track Your Packages</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center justify-between">
@@ -66,8 +171,10 @@ const ShipmentsPage = () => {
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search shipments..."
+                  placeholder="Search by tracking number..."
                   className="pl-8 w-full md:w-80"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <div className="flex gap-2">
@@ -77,68 +184,194 @@ const ShipmentsPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in-transit">In Transit</SelectItem>
+                    <SelectItem value="processing">Processing</SelectItem>
+                    <SelectItem value="transit">In Transit</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
+                    <SelectItem value="delayed">Delayed</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon">
-                  <Filter className="h-4 w-4" />
-                </Button>
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" /> Export
-            </Button>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tracking ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Origin</TableHead>
-                  <TableHead>Destination</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredShipments.map((shipment) => (
-                  <TableRow key={shipment.id}>
-                    <TableCell className="font-medium">{shipment.id}</TableCell>
-                    <TableCell>{shipment.customer}</TableCell>
-                    <TableCell>{shipment.origin}</TableCell>
-                    <TableCell>{shipment.destination}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getStatusBadgeColor(shipment.status)}>
-                        {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{shipment.date}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        Details
-                      </Button>
-                    </TableCell>
+          {isLoading ? (
+            <div className="p-8 text-center">Loading your shipments...</div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tracking Number</TableHead>
+                    <TableHead>Route</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Est. Delivery</TableHead>
+                    <TableHead>Date Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <Button variant="outline" size="sm">
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <Button variant="outline" size="sm">
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredShipments.length > 0 ? (
+                    filteredShipments.map((shipment) => (
+                      <TableRow key={shipment.id} className={shipment.is_paused ? "bg-gray-50" : ""}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {shipment.tracking_number}
+                            {shipment.is_paused && (
+                              <Badge variant="outline" className="text-orange-600">
+                                Paused
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div>{shipment.origin}</div>
+                            <div className="text-gray-500">→ {shipment.destination}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getStatusBadgeColor(shipment.status)}>
+                            {shipment.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getPaymentStatusColor(shipment.payment_status || 'pending')}>
+                            {shipment.payment_status || 'pending'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {shipment.estimated_delivery ? 
+                            new Date(shipment.estimated_delivery).toLocaleDateString() : 
+                            'TBD'
+                          }
+                        </TableCell>
+                        <TableCell>{new Date(shipment.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                setSelectedShipment(shipment);
+                                fetchTrackingEvents(shipment.id);
+                              }}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Track
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-3xl">
+                              <DialogHeader>
+                                <DialogTitle>Package Tracking - {selectedShipment?.tracking_number}</DialogTitle>
+                              </DialogHeader>
+                              {selectedShipment && (
+                                <div className="space-y-6">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <Card>
+                                      <CardHeader>
+                                        <CardTitle className="text-sm">Shipment Details</CardTitle>
+                                      </CardHeader>
+                                      <CardContent className="space-y-2">
+                                        <div>
+                                          <p className="text-xs text-gray-500">From</p>
+                                          <p className="font-medium">{selectedShipment.origin}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">To</p>
+                                          <p className="font-medium">{selectedShipment.destination}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Current Location</p>
+                                          <p className="font-medium">{selectedShipment.current_location || 'Processing'}</p>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                    <Card>
+                                      <CardHeader>
+                                        <CardTitle className="text-sm">Package Info</CardTitle>
+                                      </CardHeader>
+                                      <CardContent className="space-y-2">
+                                        <div>
+                                          <p className="text-xs text-gray-500">Weight</p>
+                                          <p className="font-medium">{selectedShipment.weight ? `${selectedShipment.weight} kg` : 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Service</p>
+                                          <p className="font-medium">{selectedShipment.service_type || 'Standard'}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Est. Delivery</p>
+                                          <p className="font-medium">
+                                            {selectedShipment.estimated_delivery ? 
+                                              new Date(selectedShipment.estimated_delivery).toLocaleDateString() : 
+                                              'TBD'
+                                            }
+                                          </p>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  </div>
+
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle className="text-sm flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        Tracking Timeline
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="space-y-4">
+                                        {trackingEvents.length > 0 ? (
+                                          trackingEvents.map((event, index) => (
+                                            <div key={event.id} className="flex items-start gap-4">
+                                              <div className="flex flex-col items-center">
+                                                <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                                                {index < trackingEvents.length - 1 && (
+                                                  <div className="w-0.5 h-8 bg-gray-300 mt-2" />
+                                                )}
+                                              </div>
+                                              <div className="flex-1 pb-4">
+                                                <div className="flex items-center justify-between">
+                                                  <h4 className="font-medium text-sm">{event.event_type}</h4>
+                                                  <span className="text-xs text-gray-500">
+                                                    {new Date(event.created_at).toLocaleString()}
+                                                  </span>
+                                                </div>
+                                                <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                                                {event.location && (
+                                                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                                                    <MapPin className="h-3 w-3" />
+                                                    {event.location}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <p className="text-gray-500 text-center py-4">No tracking events available</p>
+                                        )}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        {searchTerm || statusFilter !== "all" ? 
+                          "No shipments match your search criteria" : 
+                          "You don't have any shipments yet"
+                        }
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

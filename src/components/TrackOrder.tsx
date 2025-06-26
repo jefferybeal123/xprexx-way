@@ -4,181 +4,221 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Package, MapPin, Clock, CheckCircle, Truck, AlertCircle } from "lucide-react";
+import { MapPin, Clock, Package, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+
+interface TrackingData {
+  id: string;
+  tracking_number: string;
+  origin: string;
+  destination: string;
+  status: string;
+  current_location?: string;
+  estimated_delivery?: string;
+  created_at: string;
+  tracking_events: Array<{
+    id: string;
+    event_type: string;
+    description: string | null;
+    location: string | null;
+    created_at: string;
+  }>;
+}
 
 const TrackOrder = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
-  const [trackingResult, setTrackingResult] = useState<any>(null);
+  const [trackingData, setTrackingData] = useState<TrackingData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const { toast } = useToast();
 
-  const mockTrackingData = {
-    "XPR123456789": {
-      trackingNumber: "XPR123456789",
-      status: "In Transit",
-      currentLocation: "Chicago, IL Distribution Center",
-      estimatedDelivery: "2024-01-15",
-      shipmentDetails: {
-        origin: "New York, NY",
-        destination: "Los Angeles, CA",
-        weight: "2.5 kg",
-        dimensions: "30x20x15 cm",
-        service: "Express Delivery"
-      },
-      timeline: [
-        { status: "Package Picked Up", location: "New York, NY", time: "2024-01-10 09:00 AM", completed: true },
-        { status: "In Transit", location: "Newark, NJ Hub", time: "2024-01-10 02:00 PM", completed: true },
-        { status: "In Transit", location: "Chicago, IL Distribution Center", time: "2024-01-11 08:30 AM", completed: true },
-        { status: "Out for Delivery", location: "Los Angeles, CA", time: "Estimated 2024-01-15 10:00 AM", completed: false },
-        { status: "Delivered", location: "Los Angeles, CA", time: "Estimated 2024-01-15 12:00 PM", completed: false }
-      ]
-    },
-    "XPR987654321": {
-      trackingNumber: "XPR987654321",
-      status: "Delivered",
-      currentLocation: "Miami, FL - Delivered",
-      estimatedDelivery: "2024-01-12",
-      shipmentDetails: {
-        origin: "Boston, MA",
-        destination: "Miami, FL",
-        weight: "1.2 kg",
-        dimensions: "25x15x10 cm",
-        service: "Standard Delivery"
-      },
-      timeline: [
-        { status: "Package Picked Up", location: "Boston, MA", time: "2024-01-08 11:00 AM", completed: true },
-        { status: "In Transit", location: "Hartford, CT Hub", time: "2024-01-08 04:00 PM", completed: true },
-        { status: "In Transit", location: "Jacksonville, FL", time: "2024-01-09 07:00 AM", completed: true },
-        { status: "Out for Delivery", location: "Miami, FL", time: "2024-01-12 09:00 AM", completed: true },
-        { status: "Delivered", location: "Miami, FL", time: "2024-01-12 02:30 PM", completed: true }
-      ]
-    }
-  };
-
-  const handleTrack = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTrack = async () => {
     if (!trackingNumber.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a tracking number",
-        variant: "destructive",
-      });
+      setError("Please enter a tracking number");
       return;
     }
 
     setIsLoading(true);
+    setError("");
     
-    // Simulate API call
-    setTimeout(() => {
-      const result = mockTrackingData[trackingNumber as keyof typeof mockTrackingData];
-      if (result) {
-        setTrackingResult(result);
-        toast({
-          title: "Package Found",
-          description: `Tracking information for ${trackingNumber}`,
-        });
-      } else {
-        setTrackingResult(null);
-        toast({
-          title: "Package Not Found",
-          description: "Please check your tracking number and try again.",
-          variant: "destructive",
-        });
-      }
-      setIsLoading(false);
-    }, 1000);
-  };
+    try {
+      const { data: shipmentData, error: shipmentError } = await supabase
+        .from('shipments')
+        .select(`
+          id,
+          tracking_number,
+          origin,
+          destination,
+          status,
+          current_location,
+          estimated_delivery,
+          created_at
+        `)
+        .eq('tracking_number', trackingNumber.trim())
+        .single();
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "Delivered":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case "In Transit":
-        return <Truck className="h-5 w-5 text-blue-600" />;
-      case "Out for Delivery":
-        return <Package className="h-5 w-5 text-orange-600" />;
-      default:
-        return <Clock className="h-5 w-5 text-gray-600" />;
+      if (shipmentError) {
+        if (shipmentError.code === 'PGRST116') {
+          setError("Tracking number not found. Please check and try again.");
+        } else {
+          throw shipmentError;
+        }
+        return;
+      }
+
+      // Fetch tracking events
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('tracking_events')
+        .select('*')
+        .eq('shipment_id', shipmentData.id)
+        .order('created_at', { ascending: false });
+
+      if (eventsError) throw eventsError;
+
+      setTrackingData({
+        ...shipmentData,
+        tracking_events: eventsData || []
+      });
+
+      toast({
+        title: "Package Found",
+        description: `Tracking information loaded for ${trackingNumber}`,
+      });
+
+    } catch (err: any) {
+      console.error('Error tracking shipment:', err);
+      setError("An error occurred while tracking your shipment. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Delivered":
-        return "bg-green-100 text-green-800";
-      case "In Transit":
-        return "bg-blue-100 text-blue-800";
-      case "Out for Delivery":
-        return "bg-orange-100 text-orange-800";
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'in transit':
+      case 'out for delivery':
+        return 'bg-blue-100 text-blue-800';
+      case 'processing':
+      case 'order received':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'delayed':
+      case 'exception':
+        return 'bg-red-100 text-red-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  return (
-    <section className="relative z-30 -mt-16 mb-16">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-          <h2 className="text-2xl font-bold text-kargon-dark mb-4">Track Your Package</h2>
-          <form onSubmit={handleTrack} className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="flex-grow">
-              <Input
-                type="text"
-                placeholder="Enter your tracking number (e.g., XPR123456789)"
-                value={trackingNumber}
-                onChange={(e) => setTrackingNumber(e.target.value.toUpperCase())}
-                className="h-12"
-              />
-            </div>
-            <Button 
-              type="submit" 
-              className="bg-kargon-red hover:bg-kargon-red/90 text-white h-12 px-6"
-              disabled={isLoading}
-            >
-              <Search className="mr-2 h-5 w-5" />
-              {isLoading ? "TRACKING..." : "TRACK"}
-            </Button>
-          </form>
-          
-          <p className="text-gray-500 text-sm mb-4">
-            Enter your tracking number to get real-time updates on your package's location and status.
-          </p>
+  const realisticLocations = [
+    "XPREXX Sorting Facility - New York",
+    "International Transit Hub - JFK Airport",
+    "Customs Clearance - Port Authority",
+    "Local Distribution Center",
+    "Out for Delivery Vehicle",
+    "XPREXX Processing Center",
+    "International Flight XPR-4521",
+    "Destination City Warehouse"
+  ];
 
-          {trackingResult && (
-            <div className="space-y-6 mt-8">
+  return (
+    <section className="py-20 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-kargon-dark mb-4">
+            Track Your Package
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Enter your tracking number to get real-time updates on your shipment status and location.
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-kargon-red" />
+                Package Tracking
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    placeholder="Enter tracking number (e.g., XPR123456789)"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    className="w-full"
+                    onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {error}
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  onClick={handleTrack} 
+                  disabled={isLoading}
+                  className="bg-kargon-red hover:bg-kargon-red/90"
+                >
+                  {isLoading ? "Tracking..." : "Track Package"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {trackingData && (
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      {getStatusIcon(trackingResult.status)}
-                      Package Status
-                    </CardTitle>
-                    <Badge className={getStatusColor(trackingResult.status)}>
-                      {trackingResult.status}
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Shipment Details</span>
+                    <Badge className={getStatusColor(trackingData.status)}>
+                      {trackingData.status}
                     </Badge>
-                  </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">Tracking Number</p>
-                      <p className="font-semibold">{trackingResult.trackingNumber}</p>
+                      <p className="text-sm text-gray-500">Tracking Number</p>
+                      <p className="font-medium">{trackingData.tracking_number}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Current Location</p>
-                      <p className="font-semibold flex items-center gap-2">
+                      <p className="text-sm text-gray-500">From</p>
+                      <p className="font-medium">{trackingData.origin}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">To</p>
+                      <p className="font-medium">{trackingData.destination}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Current Location</p>
+                      <p className="font-medium flex items-center gap-1">
                         <MapPin className="h-4 w-4 text-kargon-red" />
-                        {trackingResult.currentLocation}
+                        {trackingData.current_location || "Processing"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Estimated Delivery</p>
-                      <p className="font-semibold">{trackingResult.estimatedDelivery}</p>
+                      <p className="text-sm text-gray-500">Estimated Delivery</p>
+                      <p className="font-medium flex items-center gap-1">
+                        <Clock className="h-4 w-4 text-kargon-red" />
+                        {trackingData.estimated_delivery ? 
+                          new Date(trackingData.estimated_delivery).toLocaleDateString() : 
+                          "TBD"
+                        }
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Service Type</p>
-                      <p className="font-semibold">{trackingResult.shipmentDetails.service}</p>
+                      <p className="text-sm text-gray-500">Shipped Date</p>
+                      <p className="font-medium">
+                        {new Date(trackingData.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -186,82 +226,60 @@ const TrackOrder = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Shipment Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Origin</p>
-                      <p className="font-semibold">{trackingResult.shipmentDetails.origin}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Destination</p>
-                      <p className="font-semibold">{trackingResult.shipmentDetails.destination}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Weight</p>
-                      <p className="font-semibold">{trackingResult.shipmentDetails.weight}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Dimensions</p>
-                      <p className="font-semibold">{trackingResult.shipmentDetails.dimensions}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tracking Timeline</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-kargon-red" />
+                    Tracking Timeline
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {trackingResult.timeline.map((event: any, index: number) => (
-                      <div key={index} className="flex items-start gap-4">
-                        <div className={`w-3 h-3 rounded-full mt-2 ${event.completed ? 'bg-kargon-red' : 'bg-gray-300'}`} />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className={`font-medium ${event.completed ? 'text-gray-900' : 'text-gray-500'}`}>
-                              {event.status}
-                            </p>
-                            <span className={`text-sm ${event.completed ? 'text-gray-600' : 'text-gray-400'}`}>
-                              {event.time}
-                            </span>
+                    {trackingData.tracking_events.length > 0 ? (
+                      trackingData.tracking_events.map((event, index) => (
+                        <div key={event.id} className="flex items-start gap-4">
+                          <div className="flex flex-col items-center">
+                            <div className={`w-4 h-4 rounded-full ${
+                              index === 0 ? 'bg-kargon-red' : 'bg-gray-300'
+                            }`} />
+                            {index < trackingData.tracking_events.length - 1 && (
+                              <div className="w-0.5 h-12 bg-gray-300 mt-2" />
+                            )}
                           </div>
-                          <p className={`text-sm ${event.completed ? 'text-gray-600' : 'text-gray-400'}`}>
-                            {event.location}
-                          </p>
+                          <div className="flex-1 pb-6">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-medium text-kargon-dark">{event.event_type}</h4>
+                              <span className="text-sm text-gray-500">
+                                {new Date(event.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-sm mb-2">
+                              {event.description || `Package ${event.event_type.toLowerCase()}`}
+                            </p>
+                            {event.location && (
+                              <p className="text-xs text-gray-500 flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {event.location}
+                              </p>
+                            )}
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>No tracking events available yet</p>
+                        <p className="text-sm">Your package is being processed</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </div>
           )}
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Try these sample tracking numbers:</strong>
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 text-sm">
+              Sample tracking numbers for testing: <span className="font-mono">XPR123456789</span>, <span className="font-mono">XPR987654321</span>
             </p>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setTrackingNumber("XPR123456789")}
-                className="text-blue-700 border-blue-300 hover:bg-blue-100"
-              >
-                XPR123456789
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setTrackingNumber("XPR987654321")}
-                className="text-blue-700 border-blue-300 hover:bg-blue-100"
-              >
-                XPR987654321
-              </Button>
-            </div>
           </div>
         </div>
       </div>
