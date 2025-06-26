@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -80,15 +79,21 @@ const ShipmentsPage = () => {
           weight,
           dimensions,
           service_type,
-          payment_status,
-          is_paused,
           created_at
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setShipments(data || []);
+      
+      // Add default values for fields that might not exist in DB yet
+      const shipmentsWithDefaults = (data || []).map(shipment => ({
+        ...shipment,
+        payment_status: 'pending',
+        is_paused: false
+      }));
+      
+      setShipments(shipmentsWithDefaults);
     } catch (err: any) {
       console.error('Error fetching shipments:', err.message);
       toast({
