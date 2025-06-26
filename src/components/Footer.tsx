@@ -1,3 +1,4 @@
+
 import { Phone, Mail, MapPin, Facebook, Twitter, Linkedin, Instagram, ArrowRight, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,15 +13,15 @@ const Footer = () => {
               <div className="h-10 w-10 bg-kargon-red rounded-full flex items-center justify-center">
                 <Truck className="text-white" size={20} />
               </div>
-              <span className="ml-2 font-display font-bold text-xl text-white">AURACARGO</span>
+              <span className="ml-2 font-display font-bold text-xl text-white">XPREXX</span>
             </div>
             <p className="text-gray-300 mb-6">
-              We pride ourselves on providing the best logistics and transportation services worldwide.
+              We pride ourselves on providing the best express delivery and logistics services worldwide with real-time tracking.
             </p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <MapPin size={20} className="text-kargon-red shrink-0 mt-1" />
-                <p className="text-gray-300">123 Main Street, Suite 100, New York, NY 10001</p>
+                <p className="text-gray-300">123 Express Street, Suite 100, New York, NY 10001</p>
               </div>
               <div className="flex items-center gap-3">
                 <Phone size={20} className="text-kargon-red" />
@@ -30,8 +31,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Mail size={20} className="text-kargon-red" />
-                <a href="mailto:info@auracargo.com" className="text-gray-300 hover:text-white transition-colors">
-                  info@auracargo.com
+                <a href="mailto:info@xprexx.com" className="text-gray-300 hover:text-white transition-colors">
+                  info@xprexx.com
                 </a>
               </div>
             </div>

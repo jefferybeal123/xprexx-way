@@ -38,7 +38,7 @@ const Navigation = () => {
                 <Truck className="text-white" size={20} />
               </div>
               <span className={`ml-2 font-display font-bold text-xl ${isScrolled ? 'text-kargon-dark' : 'text-white'}`}>
-                AURACARGO
+                XPREXX
               </span>
             </div>
           </Link>

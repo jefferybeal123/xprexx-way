@@ -23,10 +23,11 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 md:px-6 relative z-10 pt-20">
         <div className="max-w-3xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-            Transport your<br />cargo everywhere
+            Express delivery<br />worldwide
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-lg">
-            you happu now     </p>
+            Fast, reliable, and secure shipping solutions for all your cargo needs with real-time tracking and premium service.
+          </p>
           <Link to="/signup">
             <Button className="bg-kargon-red hover:bg-kargon-red/90 text-white rounded-md px-6 py-6 text-lg flex items-center gap-2">
               GET STARTED
