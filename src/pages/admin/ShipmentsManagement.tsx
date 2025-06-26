@@ -57,7 +57,7 @@ interface Shipment {
   is_paused?: boolean;
   created_at: string;
   updated_at?: string;
-  profiles: {
+  profiles?: {
     email: string;
     first_name: string | null;
     last_name: string | null;
@@ -134,13 +134,7 @@ const ShipmentsManagement = () => {
           receiver_email,
           term,
           created_at,
-          updated_at,
-          profiles:user_id (
-            email,
-            first_name,
-            last_name,
-            customer_id
-          )
+          updated_at
         `)
         .order('created_at', { ascending: false });
       
@@ -149,8 +143,9 @@ const ShipmentsManagement = () => {
       // Add default values for optional fields that might not exist in DB yet
       const shipmentsWithDefaults = (data || []).map(shipment => ({
         ...shipment,
-        payment_status: 'pending', // Default value
-        is_paused: false // Default value
+        payment_status: 'pending' as string,
+        is_paused: false as boolean,
+        profiles: null as any // Set to null since we're not fetching profile data yet
       }));
       
       setShipments(shipmentsWithDefaults);
