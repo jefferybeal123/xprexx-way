@@ -43,12 +43,17 @@ interface Shipment {
   status: string;
   current_location?: string;
   estimated_delivery?: string;
-  weight?: string;
+  weight?: number;
+  physical_weight?: number;
   dimensions?: string;
   service_type?: string;
-  payment_status?: string;
-  is_paused?: boolean;
-  notes?: string;
+  quantity?: number;
+  volume?: string;
+  sender_name?: string;
+  sender_email?: string;
+  receiver_name?: string;
+  receiver_email?: string;
+  term?: string;
   created_at: string;
   profiles: {
     email: string;
@@ -72,7 +77,12 @@ const ShipmentsManagement = () => {
     dimensions: "",
     service_type: "Standard",
     recipient_email: "",
-    notes: ""
+    recipient_name: "",
+    sender_name: "",
+    sender_email: "",
+    quantity: "",
+    volume: "",
+    term: ""
   });
   const { toast } = useToast();
 
@@ -96,11 +106,16 @@ const ShipmentsManagement = () => {
           current_location,
           estimated_delivery,
           weight,
+          physical_weight,
           dimensions,
           service_type,
-          payment_status,
-          is_paused,
-          notes,
+          quantity,
+          volume,
+          sender_name,
+          sender_email,
+          receiver_name,
+          receiver_email,
+          term,
           created_at,
           profiles:user_id (
             email,
@@ -131,14 +146,19 @@ const ShipmentsManagement = () => {
           tracking_number: trackingNumber,
           origin: newShipment.origin,
           destination: newShipment.destination,
-          weight: newShipment.weight,
+          weight: newShipment.weight ? parseFloat(newShipment.weight) : null,
           dimensions: newShipment.dimensions,
           service_type: newShipment.service_type,
           status: 'Processing',
-          payment_status: 'Pending',
           current_location: newShipment.origin,
-          notes: newShipment.notes,
-          estimated_delivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          estimated_delivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          sender_name: newShipment.sender_name,
+          sender_email: newShipment.sender_email,
+          receiver_name: newShipment.recipient_name,
+          receiver_email: newShipment.recipient_email,
+          quantity: newShipment.quantity ? parseInt(newShipment.quantity) : null,
+          volume: newShipment.volume,
+          term: newShipment.term
         });
 
       if (error) throw error;
@@ -156,7 +176,12 @@ const ShipmentsManagement = () => {
         dimensions: "",
         service_type: "Standard",
         recipient_email: "",
-        notes: ""
+        recipient_name: "",
+        sender_name: "",
+        sender_email: "",
+        quantity: "",
+        volume: "",
+        term: ""
       });
       fetchShipments();
     } catch (err: any) {
@@ -197,92 +222,19 @@ const ShipmentsManagement = () => {
     }
   };
 
-  const togglePauseShipment = async (shipmentId: string, currentPauseState: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('shipments')
-        .update({ is_paused: !currentPauseState })
-        .eq('id', shipmentId);
-
-      if (error) throw error;
-
-      toast({
-        title: currentPauseState ? "Shipment Resumed" : "Shipment Paused",
-        description: `Shipment has been ${currentPauseState ? 'resumed' : 'paused'}`,
-      });
-
-      fetchShipments();
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const requestPayment = async (shipmentId: string) => {
-    try {
-      const { error } = await supabase
-        .from('shipments')
-        .update({ payment_status: 'Requested' })
-        .eq('id', shipmentId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Payment Requested",
-        description: "Payment request has been sent to the customer",
-      });
-
-      fetchShipments();
-    } catch (err: any) {
-      toast({
-        title: "Error", 
-        description: err.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const verifyPayment = async (shipmentId: string) => {
-    try {
-      const { error } = await supabase
-        .from('shipments')
-        .update({ payment_status: 'Completed' })
-        .eq('id', shipmentId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Payment Verified",
-        description: "Payment has been verified and marked as completed",
-      });
-
-      fetchShipments();
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   const generateReport = () => {
     const reportData = shipments.map(shipment => ({
       trackingNumber: shipment.tracking_number,
       origin: shipment.origin,
       destination: shipment.destination,
       status: shipment.status,
-      paymentStatus: shipment.payment_status,
       customer: getCustomerName(shipment),
       createdDate: new Date(shipment.created_at).toLocaleDateString()
     }));
 
     const csvContent = [
-      'Tracking Number,Origin,Destination,Status,Payment Status,Customer,Created Date',
-      ...reportData.map(row => `${row.trackingNumber},${row.origin},${row.destination},${row.status},${row.paymentStatus},${row.customer},${row.createdDate}`)
+      'Tracking Number,Origin,Destination,Status,Customer,Created Date',
+      ...reportData.map(row => `${row.trackingNumber},${row.origin},${row.destination},${row.status},${row.customer},${row.createdDate}`)
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -315,17 +267,8 @@ const ShipmentsManagement = () => {
     }
   };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "Completed": return "bg-green-100 text-green-800";
-      case "Requested": return "bg-yellow-100 text-yellow-800";
-      case "Pending": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getCustomerName = (shipment: Shipment) => {
-    if (!shipment.profiles) return "Unknown";
+    if (!shipment.profiles) return shipment.receiver_name || "Unknown";
     
     const firstName = shipment.profiles.first_name || "";
     const lastName = shipment.profiles.last_name || "";
@@ -377,6 +320,25 @@ const ShipmentsManagement = () => {
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <Label htmlFor="sender_name">Sender Name</Label>
+                  <Input
+                    id="sender_name"
+                    value={newShipment.sender_name}
+                    onChange={(e) => setNewShipment({...newShipment, sender_name: e.target.value})}
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sender_email">Sender Email</Label>
+                  <Input
+                    id="sender_email"
+                    type="email"
+                    value={newShipment.sender_email}
+                    onChange={(e) => setNewShipment({...newShipment, sender_email: e.target.value})}
+                    placeholder="sender@email.com"
+                  />
+                </div>
+                <div>
                   <Label htmlFor="origin">Origin</Label>
                   <Input
                     id="origin"
@@ -395,12 +357,32 @@ const ShipmentsManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="weight">Weight</Label>
+                  <Label htmlFor="recipient_name">Recipient Name</Label>
+                  <Input
+                    id="recipient_name"
+                    value={newShipment.recipient_name}
+                    onChange={(e) => setNewShipment({...newShipment, recipient_name: e.target.value})}
+                    placeholder="Jane Doe"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="recipient_email">Recipient Email</Label>
+                  <Input
+                    id="recipient_email"
+                    type="email"
+                    value={newShipment.recipient_email}
+                    onChange={(e) => setNewShipment({...newShipment, recipient_email: e.target.value})}
+                    placeholder="customer@email.com"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="weight">Weight (kg)</Label>
                   <Input
                     id="weight"
+                    type="number"
                     value={newShipment.weight}
                     onChange={(e) => setNewShipment({...newShipment, weight: e.target.value})}
-                    placeholder="e.g. 2.5 kg"
+                    placeholder="2.5"
                   />
                 </div>
                 <div>
@@ -409,7 +391,17 @@ const ShipmentsManagement = () => {
                     id="dimensions"
                     value={newShipment.dimensions}
                     onChange={(e) => setNewShipment({...newShipment, dimensions: e.target.value})}
-                    placeholder="e.g. 30x20x15 cm"
+                    placeholder="30x20x15 cm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    value={newShipment.quantity}
+                    onChange={(e) => setNewShipment({...newShipment, quantity: e.target.value})}
+                    placeholder="1"
                   />
                 </div>
                 <div>
@@ -424,25 +416,6 @@ const ShipmentsManagement = () => {
                       <SelectItem value="Overnight">Overnight</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div>
-                  <Label htmlFor="recipient_email">Recipient Email</Label>
-                  <Input
-                    id="recipient_email"
-                    type="email"
-                    value={newShipment.recipient_email}
-                    onChange={(e) => setNewShipment({...newShipment, recipient_email: e.target.value})}
-                    placeholder="customer@email.com"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={newShipment.notes}
-                    onChange={(e) => setNewShipment({...newShipment, notes: e.target.value})}
-                    placeholder="Additional notes or instructions"
-                  />
                 </div>
               </div>
               <div className="flex justify-end gap-2 mt-4">
@@ -471,7 +444,7 @@ const ShipmentsManagement = () => {
                 <TableHead>Customer</TableHead>
                 <TableHead>Route</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Payment</TableHead>
+                <TableHead>Weight</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -479,16 +452,9 @@ const ShipmentsManagement = () => {
             <TableBody>
               {filteredShipments.length > 0 ? (
                 filteredShipments.map((shipment) => (
-                  <TableRow key={shipment.id} className={shipment.is_paused ? "bg-yellow-50" : ""}>
+                  <TableRow key={shipment.id}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {shipment.tracking_number}
-                        {shipment.is_paused && (
-                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                            Paused
-                          </Badge>
-                        )}
-                      </div>
+                      {shipment.tracking_number}
                     </TableCell>
                     <TableCell>{getCustomerName(shipment)}</TableCell>
                     <TableCell>
@@ -502,11 +468,7 @@ const ShipmentsManagement = () => {
                         {shipment.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getPaymentStatusColor(shipment.payment_status || 'Pending')}>
-                        {shipment.payment_status || 'Pending'}
-                      </Badge>
-                    </TableCell>
+                    <TableCell>{shipment.weight ? `${shipment.weight} kg` : 'N/A'}</TableCell>
                     <TableCell>{new Date(shipment.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
@@ -549,7 +511,7 @@ const ShipmentsManagement = () => {
                                     <CardContent className="space-y-2">
                                       <div>
                                         <p className="text-xs text-gray-500">Weight</p>
-                                        <p className="font-medium">{selectedShipment.weight || 'N/A'}</p>
+                                        <p className="font-medium">{selectedShipment.weight ? `${selectedShipment.weight} kg` : 'N/A'}</p>
                                       </div>
                                       <div>
                                         <p className="text-xs text-gray-500">Dimensions</p>
@@ -575,32 +537,6 @@ const ShipmentsManagement = () => {
                                       <SelectItem value="Delayed">Delayed</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => togglePauseShipment(selectedShipment.id, selectedShipment.is_paused || false)}
-                                  >
-                                    {selectedShipment.is_paused ? <Play className="h-4 w-4 mr-1" /> : <Pause className="h-4 w-4 mr-1" />}
-                                    {selectedShipment.is_paused ? 'Resume' : 'Pause'}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => requestPayment(selectedShipment.id)}
-                                    disabled={selectedShipment.payment_status === 'Completed'}
-                                  >
-                                    <DollarSign className="h-4 w-4 mr-1" />
-                                    Request Payment
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => verifyPayment(selectedShipment.id)}
-                                    disabled={selectedShipment.payment_status === 'Completed'}
-                                  >
-                                    <CreditCard className="h-4 w-4 mr-1" />
-                                    Verify Payment
-                                  </Button>
                                 </div>
                               </div>
                             )}
