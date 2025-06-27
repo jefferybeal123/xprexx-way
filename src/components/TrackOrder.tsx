@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Clock, Package, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { createSampleTrackingData } from "@/utils/sampleTrackingData";
 
 interface TrackingData {
   id: string;
@@ -32,6 +33,11 @@ const TrackOrder = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Initialize sample tracking data on component mount
+    createSampleTrackingData();
+  }, []);
 
   const handleTrack = async () => {
     if (!trackingNumber.trim()) {
@@ -111,17 +117,6 @@ const TrackOrder = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
-  const realisticLocations = [
-    "XPREXX Sorting Facility - New York",
-    "International Transit Hub - JFK Airport",
-    "Customs Clearance - Port Authority",
-    "Local Distribution Center",
-    "Out for Delivery Vehicle",
-    "XPREXX Processing Center",
-    "International Flight XPR-4521",
-    "Destination City Warehouse"
-  ];
 
   return (
     <section className="py-20 bg-gray-50">
