@@ -1,20 +1,16 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Search, 
-  Plus, 
-  Filter,
-  Download,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   MapPin,
-  Clock
+  Clock,
+  Bell
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,8 +28,6 @@ interface UserShipment {
   weight?: number;
   dimensions?: string;
   service_type?: string;
-  payment_status?: string;
-  is_paused?: boolean;
   created_at: string;
 }
 
@@ -86,14 +80,7 @@ const ShipmentsPage = () => {
       
       if (error) throw error;
       
-      // Add default values for fields that might not exist in DB yet
-      const shipmentsWithDefaults = (data || []).map(shipment => ({
-        ...shipment,
-        payment_status: 'pending',
-        is_paused: false
-      }));
-      
-      setShipments(shipmentsWithDefaults);
+      setShipments(data || []);
     } catch (err: any) {
       console.error('Error fetching shipments:', err.message);
       toast({
@@ -139,19 +126,6 @@ const ShipmentsPage = () => {
     }
   };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "paid":
-        return "bg-green-100 text-green-800 hover:bg-green-100";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
-      case "failed":
-        return "bg-red-100 text-red-800 hover:bg-red-100";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100";
-    }
-  };
-
   const filteredShipments = shipments.filter(shipment => {
     const matchesSearch = shipment.tracking_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          shipment.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -163,7 +137,14 @@ const ShipmentsPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-kargon-dark">My Shipments</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-kargon-dark">My Shipments</h1>
+          <p className="text-gray-600">Track and monitor your package deliveries</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <Bell className="h-4 w-4" />
+          <span>You'll receive notifications for status updates</span>
+        </div>
       </div>
       
       <Card>
@@ -182,20 +163,18 @@ const ShipmentsPage = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="transit">In Transit</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="delayed">Delayed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="transit">In Transit</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="delayed">Delayed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -209,7 +188,6 @@ const ShipmentsPage = () => {
                     <TableHead>Tracking Number</TableHead>
                     <TableHead>Route</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
                     <TableHead>Est. Delivery</TableHead>
                     <TableHead>Date Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -218,16 +196,9 @@ const ShipmentsPage = () => {
                 <TableBody>
                   {filteredShipments.length > 0 ? (
                     filteredShipments.map((shipment) => (
-                      <TableRow key={shipment.id} className={shipment.is_paused ? "bg-gray-50" : ""}>
+                      <TableRow key={shipment.id}>
                         <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {shipment.tracking_number}
-                            {shipment.is_paused && (
-                              <Badge variant="outline" className="text-orange-600">
-                                Paused
-                              </Badge>
-                            )}
-                          </div>
+                          {shipment.tracking_number}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
@@ -241,11 +212,6 @@ const ShipmentsPage = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={getPaymentStatusColor(shipment.payment_status || 'pending')}>
-                            {shipment.payment_status || 'pending'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
                           {shipment.estimated_delivery ? 
                             new Date(shipment.estimated_delivery).toLocaleDateString() : 
                             'TBD'
@@ -255,13 +221,16 @@ const ShipmentsPage = () => {
                         <TableCell className="text-right">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button variant="ghost" size="sm" onClick={() => {
-                                setSelectedShipment(shipment);
-                                fetchTrackingEvents(shipment.id);
-                              }}>
-                                <Eye className="mr-2 h-4 w-4" />
+                              <button 
+                                className="inline-flex items-center gap-2 px-3 py-1 text-sm bg-kargon-red text-white rounded hover:bg-kargon-red/90"
+                                onClick={() => {
+                                  setSelectedShipment(shipment);
+                                  fetchTrackingEvents(shipment.id);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
                                 Track
-                              </Button>
+                              </button>
                             </DialogTrigger>
                             <DialogContent className="max-w-3xl">
                               <DialogHeader>
@@ -365,7 +334,7 @@ const ShipmentsPage = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         {searchTerm || statusFilter !== "all" ? 
                           "No shipments match your search criteria" : 
                           "You don't have any shipments yet"

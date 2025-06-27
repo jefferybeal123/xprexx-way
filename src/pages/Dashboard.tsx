@@ -1,11 +1,9 @@
 
 import { useState } from "react";
-import { Link, Route, Routes } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import OverviewPage from "./dashboard/Overview";
 import ShipmentsPage from "./dashboard/Shipments";
-import DocumentsPage from "./dashboard/Documents";
 import PaymentsPage from "./dashboard/Payments";
 import SettingsPage from "./dashboard/Settings";
 
@@ -25,7 +23,6 @@ const Dashboard = () => {
           <div className="flex-1">
             {activeTab === "overview" && <OverviewPage />}
             {activeTab === "shipments" && <ShipmentsPage />}
-            {activeTab === "documents" && <DocumentsPage />}
             {activeTab === "payments" && <PaymentsPage />}
             {activeTab === "settings" && <SettingsPage />}
           </div>

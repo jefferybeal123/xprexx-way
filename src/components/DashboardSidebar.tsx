@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   Package, 
-  FileText, 
   Settings, 
   LogOut, 
   User,
@@ -23,9 +22,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeTab, setActiv
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "shipments", label: "My Shipments", icon: Package },
-    { id: "documents", label: "Documents", icon: FileText },
     { id: "payments", label: "Payments", icon: CreditCard },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "settings", label: "Profile Settings", icon: Settings },
   ];
 
   const getDisplayName = () => {
