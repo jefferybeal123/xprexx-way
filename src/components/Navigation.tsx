@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Truck, UserCircle, Shield, LogOut } from "lucide-react";
+import { Menu, X, UserCircle, Shield, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Navigation = () => {
@@ -34,9 +33,11 @@ const Navigation = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex items-center">
-              <div className="h-10 w-10 bg-kargon-red rounded-full flex items-center justify-center">
-                <Truck className="text-white" size={20} />
-              </div>
+              <img 
+                src="/lovable-uploads/7a0b3292-4d78-4771-9c03-7f6376dc87e5.png" 
+                alt="XPREXX Logo" 
+                className="h-10 w-10 rounded-lg"
+              />
               <span className={`ml-2 font-display font-bold text-xl ${isScrolled ? 'text-kargon-dark' : 'text-white'}`}>
                 XPREXX
               </span>
