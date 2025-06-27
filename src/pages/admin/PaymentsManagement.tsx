@@ -17,10 +17,12 @@ import {
   CreditCard, 
   Download, 
   Eye,
-  BarChart
+  BarChart,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Payment {
   id: string;
@@ -41,6 +43,7 @@ const PaymentsManagement = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   
   useEffect(() => {
     const fetchPayments = async () => {
@@ -104,6 +107,53 @@ const PaymentsManagement = () => {
     }
     
     return payment.profiles.email;
+  };
+
+  const generateInvoice = (payment: Payment) => {
+    const invoiceData = {
+      invoiceNumber: `INV-${payment.id.slice(0, 8).toUpperCase()}`,
+      date: new Date(payment.created_at).toLocaleDateString(),
+      customerName: getCustomerName(payment),
+      customerEmail: payment.profiles?.email || 'N/A',
+      amount: Number(payment.amount).toFixed(2),
+      status: payment.status,
+      paymentMethod: payment.payment_method,
+      transactionId: payment.transaction_id || payment.id.slice(0, 8)
+    };
+
+    // Create invoice content
+    const invoiceContent = `
+INVOICE
+
+Invoice Number: ${invoiceData.invoiceNumber}
+Date: ${invoiceData.date}
+Transaction ID: ${invoiceData.transactionId}
+
+BILL TO:
+${invoiceData.customerName}
+${invoiceData.customerEmail}
+
+PAYMENT DETAILS:
+Amount: $${invoiceData.amount}
+Payment Method: ${invoiceData.paymentMethod}
+Status: ${invoiceData.status}
+
+Thank you for your business!
+    `.trim();
+
+    // Create and download the invoice file
+    const blob = new Blob([invoiceContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice-${invoiceData.invoiceNumber}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Invoice Generated",
+      description: `Invoice ${invoiceData.invoiceNumber} has been downloaded`,
+    });
   };
 
   // Calculate summary statistics
@@ -238,11 +288,11 @@ const PaymentsManagement = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => generateInvoice(payment)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon">
-                          <Download className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" onClick={() => generateInvoice(payment)}>
+                          <FileText className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

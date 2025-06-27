@@ -33,7 +33,7 @@ const AdminDashboard = () => {
           
           {/* Main Content */}
           <div className="flex-1">
-            {activeTab === "overview" && <AdminOverview />}
+            {activeTab === "overview" && <AdminOverview onTabChange={setActiveTab} />}
             {activeTab === "users" && <UsersPage />}
             {activeTab === "shipments" && <ShipmentsManagement />}
             {activeTab === "payments" && <PaymentsManagement />}
